@@ -1,234 +1,657 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invitación</title>
-    <link rel="icon" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0VcpcG4DTi3nkzqvRk_2RNPJ1r8iMgkzE5g&s">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Una carta</title>
+
+  <style>
+    :root{
+      --paper:#fff;
+      --ink:#1f1f1f;
+
+      --bg1:#0f172a;
+      --bg2:#1f2937;
+
+      --env:#f4ead1;
+      --env-tab:#eadbb5;
+      --env-cover:#e2caa0;
+
+      --shadow:rgba(0,0,0,.22);
+      --accent:#1d4ed8;
+      --accentGlow: rgba(147,197,253,.45);
+
+      /* Responsivo */
+      --env-w: clamp(260px, 86vw, 360px);
+      --env-h: calc(var(--env-w) * 0.75);
+      --radius: 14px;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      color:var(--ink);
+      background:
+        radial-gradient(1000px 600px at 20% 10%, rgba(147,197,253,.20), transparent 60%),
+        radial-gradient(900px 700px at 80% 30%, rgba(29,78,216,.18), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    /* Brillitos */
+    .sparkles{
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      z-index:0;
+    }
+    .sparkle{
+      position:absolute;
+      width:3px; height:3px;
+      border-radius:999px;
+      background:rgba(255,255,255,.75);
+      animation: floatUp linear infinite;
+      opacity:.8;
+    }
+    @keyframes floatUp{
+      from{ transform: translateY(20px); opacity:0; }
+      20%{ opacity:.9; }
+      to{ transform: translateY(-110vh); opacity:0; }
+    }
+
+    /* Header */
+    .topbar{
+      position:fixed;
+      top:24px; /* ✅ más aire */
+      left:50%;
+      transform:translateX(-50%);
+      z-index:50;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:6px;
+      padding:10px 12px;
+      border-radius:14px;
+      background:rgba(255,255,255,.08);
+      backdrop-filter: blur(10px);
+      border:1px solid rgba(255,255,255,.12);
+      color:#fff;
+      text-align:center;
+      max-width:min(92vw, 560px);
+      
+    }
+    .topbar__center h1{
+      margin:0;
+      font-size:clamp(14px, 3.6vw, 18px);
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .topbar__center p{
+      margin:0;
+      font-size:clamp(11px, 3.2vw, 13px);
+      opacity:.9;
+    }
+
+    /* Controles */
+    .topbar__actions{
+      position:fixed;
+      top:26px; /* ✅ alineado con header */
+      right:14px;
+      z-index:60;
+      display:flex;
+      gap:8px;
+      padding-top: 50px;
+    }
+    .btn{
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.10);
+      color:#fff;
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      backdrop-filter: blur(10px);
+      font-size:12px;
+      user-select:none;
+      white-space:nowrap;
+    }
+    .btn:active{ transform:translateY(1px); }
+
+    /* Envelope */
+    .wrap{
+      position:relative;
+      z-index:10;
+      display:grid;
+      place-items:center;
+      width:100%;
+      height:100vh;
+      padding-top:150px; /* ✅ baja el sobre para que respire */
+    }
+
+    .envelope-wrapper{
+      position:relative;
+      background:var(--env);
+      box-shadow:0 0 44px var(--shadow);
+      border-radius: var(--radius);
+      padding:12px;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .envelope{
+      position:relative;
+      width:var(--env-w);
+      height:var(--env-h);
+    }
+
+    .envelope::before{
+      content:"";
+      position:absolute;
+      top:0;
+      z-index:2;
+      border-top: calc(var(--env-h) * 0.60) solid var(--env-tab);
+      border-right: calc(var(--env-w) * 0.50) solid transparent;
+      border-left:  calc(var(--env-w) * 0.50) solid transparent;
+      transform-origin: top;
+      transition: transform .55s ease-in-out .35s;
+      border-radius: 10px;
+    }
+
+    .envelope::after{
+      content:"";
+      position:absolute;
+      z-index:2;
+      width:0;height:0;
+      border-top:  calc(var(--env-h) * 0.60) solid transparent;
+      border-right: calc(var(--env-w) * 0.50) solid var(--env-cover);
+      border-bottom: calc(var(--env-h) * 0.40) solid var(--env-cover);
+      border-left:  calc(var(--env-w) * 0.50) solid var(--env-cover);
+      border-radius: 10px;
+    }
+
+    /* Carta (cerrado: dentro del sobre) */
+    .letter{
+      position:absolute;
+      left:50%;
+      bottom:10px;
+      transform:translateX(-50%);
+      width:68%;
+      height:82%;
+      background:var(--paper);
+      border-radius: 12px;
+      box-shadow:0 0 8px var(--shadow);
+      z-index:1;
+      overflow:hidden;
+
+      animation: breathe 4.6s ease-in-out infinite;
+    }
+
+    @keyframes breathe{
+      0%,100% { transform: translateX(-50%) translateY(0); }
+      50% { transform: translateX(-50%) translateY(-3px); }
+    }
+
+    .letter .text{
+      height:100%;
+      overflow:auto;
+      padding:14px 14px 16px 14px;
+      line-height:1.6;
+      font-size: clamp(13px, 3.8vw, 16px);
+      color:var(--ink);
+      text-align:left;
+    }
+
+    .letter .text strong{
+      display:block;
+      font-size: clamp(14px, 4.2vw, 17px);
+      margin-bottom:8px;
+    }
+
+    .muted-note{
+      margin-top:10px;
+      font-size: clamp(12px, 3.6vw, 14px);
+      opacity:.75;
+    }
+
+    /* Corazón */
+    .heart{
+      position:absolute;
+      top:52%;
+      left:50%;
+      width:46px;
+      height:46px;
+      background:var(--accent);
+      z-index:6;
+      transform: translate(-50%,-50%) rotate(45deg);
+      cursor:pointer;
+      box-shadow:0 10px 18px rgba(0,0,0,.22);
+      transition: transform .5s ease-in-out .35s, filter .2s;
+      border-radius:8px;
+      filter: drop-shadow(0 0 12px var(--accentGlow));
+    }
+    .heart::before,
+    .heart::after{
+      content:"";
+      position:absolute;
+      width:46px;
+      height:46px;
+      background:var(--accent);
+      border-radius:50%;
+    }
+    .heart::before{ top:-23px; left:0; }
+    .heart::after{ top:0; left:-23px; }
+
+    /* Overlay cuando se abre */
+    .overlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.45);
+      backdrop-filter: blur(6px);
+      opacity:0;
+      pointer-events:none;
+      transition: opacity .25s ease;
+      z-index:80;
+    }
+
+    /* Estado abierto */
+    .flap .envelope::before{
+      transform: rotateX(180deg);
+      z-index:0;
+    }
+    .flap .heart{
+      transform: translate(-50%,-50%) rotate(90deg);
+    }
+    .flap + .overlay{
+      opacity:1;
+      pointer-events:auto;
+    }
+
+    /* ✅ La carta pasa a “modal” centrada */
+    .flap .letter{
+      position:fixed;
+      left:50%;
+      top:56%;
+      bottom:auto;
+      width: min(90vw, 560px);
+      height: min(70vh, 520px);
+      transform: translate(-50%,-50%);
+      z-index:90;
+      animation:none;
+      border:1px solid rgba(0,0,0,.06);
+    }
+
+    /* Hint abajo */
+    .hint{
+      position:fixed;
+      bottom:14px;
+      left:50%;
+      transform:translateX(-50%);
+      z-index:85;
+      color:#fff;
+      background:rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.16);
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:12px;
+      opacity:.0;
+      transition: opacity .25s ease;
+      pointer-events:none;
+      backdrop-filter: blur(10px);
+      max-width: 92vw;
+      text-align:center;
+    }
+    .flap ~ .hint{ opacity:1; }
+
+    /* Pantallas muy bajas */
+    @media (max-height: 640px){
+      .flap .letter{ top:58%; height:min(72vh, 520px); }
+    }
+
+    /* ✅ Ajustes solo para móvil: aún más aire arriba */
+    @media (max-width: 480px){
+      .topbar{ top:30px; padding:9px 10px; }
+      .topbar__actions{ top:30px; right:10px; }
+      .wrap{ padding-top:130px; }
+      .btn{ padding:9px 10px; font-size:11px; }
+    }
+    #fxCanvas{
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 70;              /* debajo de la carta modal (90) pero encima del fondo */
+      pointer-events: none;     /* no bloquea clicks */
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
+
+    .fx-on #fxCanvas{
+      opacity: 1;
+    }
+
+  </style>
 </head>
+
+
 <body>
-<!--Inicio de Estilo CSS-->
-    <style>
-     
-        :root{
-    --primary: #fff;
-    --bg-color: rgb(124, 157, 168);
-    --bg-envelope-color: #f5edd1;
-    --envelope-tab: #ecdeb8;
-    --envelope-cover: #e6cfa7;
-    --shadow-color: rgba(0, 0, 0, 0.2);
-    --txt-color: #444;
-    --heart-color: rgb(0, 61, 175);
-  }
-  body{
-    margin: 0;
-    padding: 0;
-    background-image:url(https://i.pinimg.com/736x/6b/ae/d7/6baed7a149b643148aaceada1132ae88.jpg);
-    background-size: cover;   /* ✅ Muestra la imagen completa */
-    background-position: center;
-    background-repeat: no-repeat;
-    background-color: #f2e3b6;  /* Color de fondo por si sobran márgenes */
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start; /* o center según tu gusto */
-  }
-
-  .container {
-    height: 100vh;
-    display: grid;
-    place-items: center;
-  }
-  .container > .envelope-wrapper {
-    background: var(--bg-envelope-color);
-    box-shadow: 0 0 40px var(--shadow-color);
-  
-  }
-  .envelope-wrapper > .envelope {
-    position: relative;
-    width: 300px;
-    height: 230px;
-    
-  }
-  .envelope-wrapper > .envelope::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    z-index: 2;
-    border-top: 130px solid var(--envelope-tab);
-    border-right: 150px solid transparent;
-    border-left: 150px solid transparent;
-    transform-origin: top;
-    transition: all 0.5s ease-in-out 0.7s;
-    
-  }
-  .envelope-wrapper > .envelope::after {
-    content: "";
-    position: absolute;
-    z-index: 2;
-    width: 0px;
-    height: 0px;
-    border-top: 130px solid transparent;
-    border-right: 150px solid var(--envelope-cover);
-    border-bottom: 100px solid var(--envelope-cover);
-    border-left: 150px solid var(--envelope-cover);
-    
-  }
-  .envelope > .letter {
-    position: absolute;
-    right: 19%;
-    bottom: 0;
-    width: 57%;
-    height: 90%;
-    background: var(--primary);
-    text-align: center;
-    transition: all 1s ease-in-out;
-    box-shadow: 0 0 5px var(--shadow-color);
-    padding: 10px 10px;
-    
-  }
-  
-  .envelope > .letter > .text {
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-    color: var(--txt-color);
-    text-align: center;
-    font-size: 10px;
-  }
-  .heart {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 40px; /* Ancho del "botón" */
-    height: 40px; /* Alto del "botón" */
-    background: var(--heart-color);
-    z-index: 6;
-    transform: translate(-50%, -50%) rotate(45deg);
-    transition: transform 0.5s ease-in-out 1s;
-    box-shadow: 0 2px 6px var(--shadow-color);
-    cursor: pointer;
-    border-radius: 2px; /* Bordes redondeados */
-  }
-  .heart:before, 
-  .heart:after {
-    content: "";
-    position: absolute;
-    width: 0px;
-    height: 0px;
-    background-color: var(--heart-color);
-    border-radius: 50%;
-  }
-  .heart:before {
-    top: -5.5px;
-  }
-  .heart:after {
-    right: 5.5px;
-  }
-  .flap > .envelope:before {
-    transform: rotateX(180deg);
-    z-index: 0;
-  }
-  .flap > .envelope > .letter {
-    bottom: 100px;
-    transform: scale(1.5);
-    transition-delay: 1s;
-  }
-  .flap > .heart {
-    transform: rotate(90deg);
-    transition-delay: 0.4s;
-  }
-
-  .letter {
-    overflow: auto; 
-}
+  <div class="sparkles" id="sparkles"></div>
+  <canvas id="fxCanvas"></canvas>
 
 
-.text {
-    max-height: calc(100% - 100px); 
-    overflow-y: auto;
-    padding-right: 10px; 
-    line-height: 1.5;
-}
-@media only screen and (max-width: 600px) {
-  h1, h2 {
-    top: 3px; /* Ajusta según sea necesario para dispositivos móviles */
-  }
-}
-
-
-
-iframe {
-    position: absolute;
-    top: 85%; /* Ajusta según sea necesario */
-    right: 14%; /* Ajusta según sea necesario */
-    transform: translateY(-50%);
-    border-radius: 12px;
-}
-
-
-h2, h4 {
-  font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-  color: rgb(0, 0, 0);
-  text-align: center;
-  position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9999;
-  background-color: rgb(138, 102, 98);
-  padding: 0.2em 0.4em;
-  display: inline-block; /* 🔑 Esto limita el fondo al contenido */
-  border-radius: 5px;
-}
-
-h1 {
-  top: 10px; /* Ajusta según lo necesites */
-}
-
-h4 {
-  top: 60px; /* Justo debajo del h1 */
-}
-
-
-/* Para evitar que el texto se superponga con otros elementos */
-
-
-    </style>
-<!--Fin de Estilo CSS-->
-
-  <div class="inicio">
-    <h2><center>Bienvenida Andreita❤️ </center></h2>
-    <h4><center>Te mando una invitación de tu duende</center></h4>
-  </div>  
-    <div class="container">
-        <div class="envelope-wrapper">
-            <div class="envelope">
-                <div class="letter" >
-                    <div class="text">
-                        <strong>Ita</strong>
-                        <p>
-                          Hola Ita, te queria invitar a las montañas magicas del parque Padre hurtado
-                          a pasar un bonito dia juntos, podras invitar a una persona para que pase un día magico con nosotros,
-                          tambien proponerte juntarnos el viernes (nuestra previa) en las montañas magicas de Maestranza, en algun parque y conversar de la bendecida
-                          vida que Dios nos ha dado, Te quiero mucho ❤️ , recuerda pedir permiso a tus papás.
-                          
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="heart"></div>
-        </div>
+  <div class="topbar">
+    <div class="topbar__center">
+      <h1>Una carta para ti ✨</h1>
+      <p id="fecha">—</p>
     </div>
 
-    
-    <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/49NuRHWf8XHHfjxOQ5eEcg?utm_source=generator" width="80%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+    <div class="topbar__actions">
+      <div class="btn" id="btnMusic">🎵 Música: ON</div>
+      <div class="btn" id="btnHint">💌 Tip</div>
+    </div>
+  </div>
 
 
-    <script>
-        const envelope = document.querySelector('.envelope-wrapper');
-        envelope.addEventListener('click', () => {
-            envelope.classList.toggle('flap');
-        });
-    </script>
+  <div class="wrap">
+    <div class="envelope-wrapper" id="wrapCard" aria-label="Abrir carta">
+      <div class="envelope">
+        <div class="letter" role="dialog" aria-modal="true">
+          <div class="text">
+            <strong>Querida Andreita,</strong>
+
+            <p>
+              Quise escribirte esta carta para cerrar este año con el corazón lleno de gratitud.
+              Ha sido un tiempo especial, lleno de aprendizajes, conversaciones sinceras y momentos
+              que han ido tomando un lugar muy bonito en mi vida.
+              Deseo de todo corazón que este nuevo año venga con alegría y muchas bendiciones para ti,
+              siempre bajo el cuidado y la voluntad de nuestro Dios.
+            </p>
+
+            <p>
+              A lo largo de este año he podido conocerte un poco más, y en ese proceso me he dado cuenta
+              de algo muy claro, eres una persona especial.
+              Hay en ti una forma de ser que transmite vida, calma y alegría,
+              como un jardín lleno de flores que florecen sin esfuerzo,
+              simplemente porque están donde deben estar.
+              Estar cerca de ti se siente así: natural, luminoso y lleno de color.
+            </p>
+
+            <p>
+              Estoy profundamente agradecido con Dios por haberte puesto en mi camino.
+              No lo doy por hecho ni lo tomo a la ligera.
+              Creo que hay personas que llegan como respuesta a oraciones silenciosas,
+              y tú has sido una de esas bendiciones que superan cualquier expectativa.
+              En tu presencia he encontrado paz, y eso es un regalo que no se encuentra todos los días.
+            </p>
+
+            <p>
+              Para mí sigues siendo mi elfa de las tierras mágicas de Maestranza,
+              no por fantasía, sino porque traes contigo una esencia especial
+              que transforma lo cotidiano en algo significativo.
+              Tienes esa capacidad de hacer que lo simple se sienta valioso
+              y que los días comunes se llenen de sentido,
+              como cuando un jardín florece y todo alrededor cobra vida.
+            </p>
+
+            <p>
+              Al mirar este año que termina, no puedo evitar sentir gratitud.
+              Ha sido un año más pleno de lo que imaginé,
+              y gran parte de eso tiene que ver contigo.
+              Gracias por tu alegría, por tu ternura,
+              por tu forma de mirar la vida y por la luz que transmites sin siquiera proponértelo.
+            </p>
+
+            <p>
+              Deseo de corazón que este nuevo año sea un tiempo de crecimiento,
+              cuidado y nuevas flores en tu camino.
+              Que Dios te guarde, te guíe
+              y te regale motivos para sonreír cada día.
+            </p>
+
+            <p>
+              Con cariño,<br />
+              <strong>Deelan</strong> 🌸
+            </p>
+
+            <p class="muted-note">
+              Feliz Año Nuevo ✨
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="heart" id="heart" title="Abrir / cerrar"></div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="hint">Toca de nuevo el sobre (o el fondo oscuro) para cerrar 💙</div>
+  </div>
+  
+  <audio id="bgMusic" preload="auto">
+    <source src="music/ABBA_-_Take_A_Chance_On_Me_(mp3.pm).mp3" type="audio/mpeg">
+    Tu navegador no soporta audio.
+  </audio>
+
+  <script>
+  // ===== Fecha =====
+  const fechaEl = document.getElementById("fecha");
+  const now = new Date();
+  const fechaBonita = now.toLocaleDateString("es-CL", {
+    weekday:"long", year:"numeric", month:"long", day:"numeric"
+  });
+  fechaEl.textContent = fechaBonita.charAt(0).toUpperCase() + fechaBonita.slice(1);
+
+  // ===== Brillitos =====
+  const sparkles = document.getElementById("sparkles");
+  const N = 26;
+  for (let i=0;i<N;i++){
+    const s = document.createElement("div");
+    s.className = "sparkle";
+    s.style.left = Math.random()*100 + "vw";
+    s.style.top = (80 + Math.random()*40) + "vh";
+    s.style.animationDuration = (6 + Math.random()*8) + "s";
+    s.style.animationDelay = (Math.random()*4) + "s";
+    s.style.opacity = (0.35 + Math.random()*0.55);
+    sparkles.appendChild(s);
+  }
+
+  // ===== Elementos =====
+  const wrapCard = document.getElementById("wrapCard");
+  const overlay = document.getElementById("overlay");
+  const btnHint = document.getElementById("btnHint");
+  const btnMusic = document.getElementById("btnMusic");
+  const bgMusic = document.getElementById("bgMusic");
+
+  // ===== Estado =====
+  let isOpen = false;
+  let musicOn = true;
+
+  // ===== Música =====
+  bgMusic.volume = 0.35;
+  bgMusic.loop = true;
+
+  function startMusic(){
+    if (!musicOn) return;
+    bgMusic.currentTime = 0;
+    bgMusic.play().catch(() => {
+      console.log("Audio bloqueado hasta interacción del usuario");
+    });
+  }
+
+  function stopMusic(){
+    bgMusic.pause();
+  }
+
+  function setOpen(open){
+    isOpen = open;
+    wrapCard.classList.toggle("flap", isOpen);
+
+    if (isOpen) {
+      startMusic();
+      startFX(2800);   // 🎆 pirotecnia visual al abrir
+    } else {
+      stopMusic();
+      stopFX();        // apagar al cerrar
+    }
+  }
+
+
+  // Click en sobre
+  wrapCard.addEventListener("click", () => setOpen(!isOpen));
+
+  // Click en fondo oscuro
+  overlay.addEventListener("click", () => setOpen(false));
+
+  // Botón música
+  btnMusic.addEventListener("click", (e) => {
+    e.stopPropagation();
+    musicOn = !musicOn;
+
+    if (!musicOn){
+      stopMusic();
+      btnMusic.textContent = "🔇 Música: OFF";
+    } else {
+      btnMusic.textContent = "🎵 Música: ON";
+      if (isOpen) startMusic();
+    }
+  });
+
+  // Tip
+  btnHint.addEventListener("click", (e) => {
+    e.stopPropagation();
+    alert("Tip: en móvil, si el texto es largo, puedes deslizar dentro de la carta ✨");
+  });
+
+    // ====== FX: Fuegos artificiales (Canvas) ======
+  const fxCanvas = document.getElementById("fxCanvas");
+  const fxc = fxCanvas.getContext("2d", { alpha: true });
+
+  function resizeFx(){
+    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    fxCanvas.width = Math.floor(window.innerWidth * dpr);
+    fxCanvas.height = Math.floor(window.innerHeight * dpr);
+    fxc.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener("resize", resizeFx);
+  resizeFx();
+
+  let fxParticles = [];
+  let fxRunning = false;
+  let fxRAF = null;
+  let fxEndAt = 0;
+
+  function rand(min, max){ return Math.random() * (max - min) + min; }
+
+  function burst(x, y){
+    const count = Math.floor(rand(30, 60));
+    const baseSpeed = rand(2.2, 4.2);
+
+    for (let i=0; i<count; i++){
+      const a = rand(0, Math.PI * 2);
+      const s = baseSpeed * rand(0.6, 1.2);
+
+      fxParticles.push({
+        x, y,
+        vx: Math.cos(a) * s,
+        vy: Math.sin(a) * s,
+        life: rand(35, 70),
+        r: rand(1.5, 3.2),
+        // brillo sin colores fijos: usamos blanco con alpha variable
+        alpha: rand(0.6, 1.0),
+        drag: rand(0.985, 0.992),
+        gravity: rand(0.02, 0.06)
+      });
+    }
+  }
+
+  function launchFireworks(times = 4){
+    // dispara varias explosiones desde posiciones distintas
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+
+    for (let i=0; i<times; i++){
+      setTimeout(() => {
+        burst(rand(w*0.15, w*0.85), rand(h*0.18, h*0.55));
+      }, i * 180);
+    }
+  }
+
+  function fxLoop(){
+    if (!fxRunning) return;
+
+    fxc.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+    // efecto “trail” suave
+    fxc.fillStyle = "rgba(0,0,0,0.08)";
+    fxc.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+    for (let i = fxParticles.length - 1; i >= 0; i--){
+      const p = fxParticles[i];
+
+      p.vx *= p.drag;
+      p.vy = p.vy * p.drag + p.gravity;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.life -= 1;
+      p.alpha *= 0.985;
+
+      // dibujar partícula
+      fxc.beginPath();
+      fxc.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      fxc.fillStyle = `rgba(255,255,255,${Math.max(0, p.alpha)})`;
+      fxc.fill();
+
+      if (p.life <= 0 || p.alpha <= 0.05 || p.y > window.innerHeight + 40){
+        fxParticles.splice(i, 1);
+      }
+    }
+
+    // apagar automático
+    if (Date.now() > fxEndAt && fxParticles.length === 0){
+      stopFX();
+      return;
+    }
+
+    fxRAF = requestAnimationFrame(fxLoop);
+  }
+
+  function startFX(durationMs = 2500){
+    fxEndAt = Date.now() + durationMs;
+    fxRunning = true;
+    document.body.classList.add("fx-on");
+
+    // una tanda inmediata
+    launchFireworks(5);
+
+    // y un par extras para que se sienta “wow”
+    setTimeout(() => launchFireworks(3), 700);
+    setTimeout(() => launchFireworks(2), 1200);
+
+    if (!fxRAF) fxLoop();
+  }
+
+  function stopFX(){
+    fxRunning = false;
+    document.body.classList.remove("fx-on");
+    fxParticles = [];
+    if (fxRAF){
+      cancelAnimationFrame(fxRAF);
+      fxRAF = null;
+    }
+    fxc.clearRect(0, 0, window.innerWidth, window.innerHeight);
+  }
+  document.addEventListener("click", (e) => {
+    if (!isOpen) return;
+    burst(e.clientX, e.clientY);
+  });
+
+</script>
+
+
 </body>
 </html>
